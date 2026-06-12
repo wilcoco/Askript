@@ -92,7 +92,7 @@ def _run_job(job_id: str, script: str, default_bg: Background, options: RenderOp
 def generate(
     script: str = Form(...),
     voice: str = Form("ko-KR-SunHiNeural"),
-    tts: str = Form("edge"),
+    tts: str = Form("auto"),
     style: str = Form("gradient"),
     bg_color: str = Form("#101418"),
     grad_top: str = Form("#001027"),
@@ -115,11 +115,12 @@ def generate(
     except ValueError as e:
         return JSONResponse({"error": f"색상 오류: {e}"}, status_code=400)
 
+    tts_backend = tts if tts in ("auto", "edge", "gtts", "silent") else "auto"
     options = RenderOptions(
         out_path=out_path,
         size=RESOLUTIONS[resolution],
         fps=30,
-        tts_backend="silent" if tts == "silent" else "edge",
+        tts_backend=tts_backend,
         voice=voice,
         rate=rate or "+0%",
         pexels_key=pexels_key.strip() or None,
@@ -222,7 +223,9 @@ INDEX_HTML = """<!doctype html>
       <div>
         <label>음성</label>
         <select id="tts">
-          <option value="edge">실제 음성 (Edge TTS)</option>
+          <option value="auto">실제 음성 (자동: Edge→Google)</option>
+          <option value="gtts">Google 음성 (gTTS)</option>
+          <option value="edge">Edge 음성만</option>
           <option value="silent">무음 (미리보기)</option>
         </select>
       </div>

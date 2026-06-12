@@ -119,6 +119,18 @@ def render_scenes(scenes: List[Scene], options: RenderOptions, progress=None) ->
     # 배경별 캐시: id(background) -> (media_path, is_video, video_duration, base_image)
     resolved: Dict[int, Tuple[Optional[str], bool, float, object]] = {}
     counter = 0
+    # 'auto' 는 edge 먼저 시도하고 실패하면 gtts 로 굳힌다(이후 세그먼트도 gtts 유지).
+    active_backend = options.tts_backend
+
+    def synth_audio(text: str, out: str, voice: str, rate: str) -> float:
+        nonlocal active_backend
+        if active_backend == "auto":
+            try:
+                return tts.synthesize(text, out, "edge", voice, rate)
+            except Exception as e:  # noqa: BLE001
+                print(f"[TTS] Edge 실패 → gTTS 로 전환합니다: {e}")
+                active_backend = "gtts"
+        return tts.synthesize(text, out, active_backend, voice, rate)
 
     try:
         for scene in scenes:
@@ -152,12 +164,11 @@ def render_scenes(scenes: List[Scene], options: RenderOptions, progress=None) ->
                 # 오디오
                 audio_mp3 = os.path.join(workdir, f"audio_{counter:04d}.mp3")
                 if text:
-                    duration = tts.synthesize(
+                    duration = synth_audio(
                         text,
                         audio_mp3,
-                        backend=options.tts_backend,
-                        voice=scene.voice or options.voice,
-                        rate=scene.rate or options.rate,
+                        scene.voice or options.voice,
+                        scene.rate or options.rate,
                     )
                 else:
                     # b-roll: @duration, 영상 길이, 기본 4초 순으로 결정.

@@ -94,9 +94,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--tts",
         dest="tts_backend",
-        choices=["edge", "silent"],
+        choices=["edge", "gtts", "auto", "silent"],
         default="edge",
-        help="TTS 백엔드 (기본: edge / silent=무음 미리보기)",
+        help="TTS 백엔드 (edge / gtts=Google / auto=edge후 gtts대체 / silent=무음)",
     )
     p.add_argument(
         "--voice",

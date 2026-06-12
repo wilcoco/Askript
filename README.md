@@ -169,7 +169,7 @@ export PEXELS_API_KEY="여기에_발급받은_키"
 | `--bg-image` | – | 이미지 배경 경로 |
 | `--fit` | `cover` | 이미지/영상 화면맞춤 기본값 (cover/contain) |
 | `--pexels-key` | – | Pexels API 키(`@search` 용, 환경변수로도 가능) |
-| `--tts` | `edge` | `edge`(실음성) / `silent`(무음 미리보기) |
+| `--tts` | `edge` | `edge`(고품질) / `gtts`(Google, 서버에서 안정) / `auto`(edge→gtts 대체) / `silent`(무음) |
 | `--voice` | `ko-KR-SunHiNeural` | Edge TTS 목소리 |
 | `--rate` | `+0%` | 말하기 속도 |
 | `--resolution` | `1080p` | `1080p`/`720p`/`480p`/`shorts`(세로) |
