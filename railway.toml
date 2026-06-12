@@ -1,11 +1,14 @@
-# Railway 배포 설정. Dockerfile 로 빌드하고 헬스체크로 기동을 확인한다.
-# 깃에 푸시하면 Railway 가 이 설정으로 자동 빌드/배포한다.
+# Railway 배포 설정. 깃에 푸시하면 이 설정으로 자동 빌드/배포한다.
+# Dockerfile 빌더를 쓰면 한글 폰트(나눔)까지 컨테이너에 포함된다.
 
 [build]
-builder = "dockerfile"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
 
 [deploy]
+# 빌더가 Railpack/Nixpacks 로 떨어지더라도 시작 명령을 보장한다.
+startCommand = "uvicorn webapp:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 120
-restartPolicyType = "on_failure"
+restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
