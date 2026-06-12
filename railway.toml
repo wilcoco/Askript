@@ -6,8 +6,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-# 빌더가 Railpack/Nixpacks 로 떨어지더라도 시작 명령을 보장한다.
-startCommand = "uvicorn webapp:app --host 0.0.0.0 --port $PORT"
+# 셸 변수 확장에 의존하지 않도록 python 진입점으로 기동한다(PORT 는 main.py 가 읽음).
+startCommand = "python main.py"
 healthcheckPath = "/healthz"
 healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

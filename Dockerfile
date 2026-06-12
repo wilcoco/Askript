@@ -20,5 +20,6 @@ ENV PYTHONUNBUFFERED=1 \
 
 EXPOSE 8000
 
-# Railway 는 PORT 환경변수를 주입한다 (없으면 8000).
-CMD ["sh", "-c", "uvicorn webapp:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Railway 가 PORT 환경변수를 주입한다. main.py 가 파이썬에서 직접 PORT 를 읽어
+# 바인딩하므로, 셸 변수 확장에 의존하지 않는다.
+CMD ["python", "main.py"]
