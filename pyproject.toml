@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "askript"
+version = "0.1.0"
+description = "스크립트(대본)를 유튜브용 mp4 동영상으로 만들어 주는 도구"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "edge-tts>=6.1.9",
+    "Pillow>=10.0.0",
+    "imageio-ffmpeg>=0.4.9",
+]
+
+[project.scripts]
+askript = "askript.cli:main"
+
+[tool.setuptools]
+packages = ["askript"]
