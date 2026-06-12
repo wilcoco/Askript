@@ -17,7 +17,30 @@
 
 ---
 
-## 설치
+## 웹앱으로 쓰기 (브라우저)
+
+대본을 붙여넣고 버튼만 누르면 영상이 나오는 **웹 인터페이스**가 들어 있습니다.
+
+```bash
+pip install -r requirements.txt
+uvicorn webapp:app --reload
+# 브라우저에서 http://127.0.0.1:8000 접속
+```
+
+### Railway 로 배포 (깃 푸시 → 자동 웹 배포)
+
+이 저장소에는 `Dockerfile` 과 `railway.toml` 이 있어 **Railway 에 그대로 배포**됩니다.
+
+1. [railway.app](https://railway.app) 에서 **New Project → Deploy from GitHub repo** 로 이 저장소 선택
+2. Railway 가 `Dockerfile` 로 자동 빌드 → 공개 URL 생성 (이후 깃에 푸시할 때마다 자동 재배포)
+3. (선택) **Variables** 에 `PEXELS_API_KEY` 를 넣으면 `@search` 를 매번 키 입력 없이 사용
+4. 생성된 URL 로 접속해 브라우저에서 영상 생성
+
+> 음성(Edge TTS)은 인터넷이 열린 Railway 서버에서 정상 동작하므로, **웹에서 바로
+> 음성이 들어간 영상**을 만들 수 있습니다. 단, 웹 버전에서는 서버에 없는 로컬 파일
+> (`@bg image 내파일.png`)은 못 쓰니 미디어는 `@search` 로 넣으세요.
+
+## 설치 (명령줄로 쓰기)
 
 ```bash
 pip install -r requirements.txt
@@ -165,6 +188,9 @@ askript/
   render.py     전체 파이프라인 (정지화면/동영상 + 음성 → ffmpeg → mp4)
   ffmpeg.py     ffmpeg 실행/길이 측정 헬퍼
   fonts.py      한글 폰트 자동 해석/다운로드
+webapp.py       웹 인터페이스 (FastAPI) — 브라우저에서 영상 생성
+Dockerfile      배포용 컨테이너 (Railway 등)
+railway.toml    Railway 배포 설정
 ```
 
 ## 한계 / 다음 단계
