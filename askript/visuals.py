@@ -15,15 +15,20 @@ Size = Tuple[int, int]
 # ---------------------------------------------------------------------------
 # 배경
 # ---------------------------------------------------------------------------
-def make_background(bg: Background, size: Size) -> Image.Image:
+def make_background(bg: Background, size: Size, image_path: Optional[str] = None) -> Image.Image:
+    """정적 배경(색/그라데이션/이미지)을 PIL 이미지로 반환.
+
+    image_path 를 주면 (스톡 검색 등으로 받아온) 그 이미지를 사용한다.
+    """
     if bg.kind == "color":
         return Image.new("RGB", size, bg.color)
     if bg.kind == "gradient":
         return _gradient(bg.color, bg.color2 or bg.color, size)
-    if bg.kind == "image":
-        if not bg.image_path:
-            raise ValueError("image 배경에는 image_path 가 필요합니다.")
-        return _cover_image(bg.image_path, size)
+    if bg.kind in ("image", "stock"):
+        path = image_path or bg.media_path
+        if not path:
+            raise ValueError("이미지 배경에는 파일 경로가 필요합니다.")
+        return _fit_image(path, size, bg.fit)
     raise ValueError(f"알 수 없는 배경 종류: {bg.kind}")
 
 
@@ -39,10 +44,18 @@ def _gradient(top: tuple, bottom: tuple, size: Size) -> Image.Image:
     return base.resize(size)
 
 
-def _cover_image(path: str, size: Size) -> Image.Image:
+def _fit_image(path: str, size: Size, fit: str = "cover") -> Image.Image:
     img = Image.open(path).convert("RGB")
     w, h = size
     iw, ih = img.size
+    if fit == "contain":
+        # 잘리지 않게 전체를 보이고, 남는 공간은 검은 여백.
+        scale = min(w / iw, h / ih)
+        nw, nh = max(1, int(iw * scale)), max(1, int(ih * scale))
+        canvas = Image.new("RGB", size, (0, 0, 0))
+        canvas.paste(img.resize((nw, nh)), ((w - nw) // 2, (h - nh) // 2))
+        return canvas
+    # cover: 꽉 채우고 넘치는 부분은 잘라낸다.
     scale = max(w / iw, h / ih)
     nw, nh = int(iw * scale), int(ih * scale)
     img = img.resize((nw, nh))
@@ -97,9 +110,20 @@ def compose_frame(
     subtitle: Optional[str] = None,
     title: Optional[str] = None,
 ) -> Image.Image:
-    """배경 위에 제목(상단)과 자막(하단)을 그린 한 프레임을 반환."""
+    """정적 배경 위에 제목(상단)과 자막(하단)을 그린 한 프레임을 반환."""
     img = background.convert("RGBA")
-    w, h = img.size
+    overlay = render_overlay(img.size, font_path, subtitle, title)
+    return Image.alpha_composite(img, overlay).convert("RGB")
+
+
+def render_overlay(
+    size: Size,
+    font_path: str,
+    subtitle: Optional[str] = None,
+    title: Optional[str] = None,
+) -> Image.Image:
+    """투명 배경에 제목/자막만 그린 RGBA 오버레이를 반환 (동영상 위에 얹을 때 사용)."""
+    w, h = size
     overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     draw = ImageDraw.Draw(overlay)
 
@@ -143,7 +167,7 @@ def compose_frame(
             line_h=line_h,
         )
 
-    return Image.alpha_composite(img, overlay).convert("RGB")
+    return overlay
 
 
 def _draw_centered_block(

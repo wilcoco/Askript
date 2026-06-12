@@ -38,7 +38,7 @@ def _default_background(args) -> Background:
     if style == "image":
         if not args.bg_image:
             raise SystemExit("--style image 에는 --bg-image 경로가 필요합니다.")
-        return Background(kind="image", image_path=args.bg_image)
+        return Background(kind="image", media_path=args.bg_image, fit=args.fit)
     raise SystemExit(f"알 수 없는 스타일: {style}")
 
 
@@ -79,6 +79,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="그라데이션 두 색",
     )
     p.add_argument("--bg-image", help="이미지 배경 파일 경로")
+    p.add_argument(
+        "--fit",
+        choices=["cover", "contain"],
+        default="cover",
+        help="이미지/영상 화면맞춤 기본값 (cover=꽉채움 / contain=잘림없이)",
+    )
+    p.add_argument(
+        "--pexels-key",
+        help="Pexels API 키 (@search 사용 시. 환경변수 PEXELS_API_KEY 로도 가능)",
+    )
 
     # 음성
     p.add_argument(
@@ -171,6 +181,8 @@ def main(argv: List[str] = None) -> int:
         voice=args.voice,
         rate=args.rate,
         keep_temp=args.keep_temp,
+        pexels_key=args.pexels_key,
+        insecure_download=args.insecure_font_download,
     )
 
     n_segments = sum(max(1, len(s.segments)) for s in scenes)

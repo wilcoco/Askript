@@ -67,10 +67,60 @@ UTF-8 텍스트 파일입니다.
 |---|---|
 | `@bg color #1e2a44` | 단색 배경 |
 | `@bg gradient #001027 #0a3d91` | 위→아래 그라데이션 |
-| `@bg image path/to.png` | 이미지 배경(화면에 꽉 차게) |
+| `@bg image bg.png [cover\|contain]` | 로컬 이미지 배경 |
+| `@bg video clip.mp4 [cover\|contain]` | 로컬 동영상 배경(자막이 위에 얹힘) |
+| `@media path [fit]` | 이미지/동영상 자동 감지 |
+| `@search [image\|video] 키워드` | 스톡(Pexels)에서 검색해 배경으로 사용 |
+| `@fit cover\|contain` | 화면맞춤(꽉채움/잘림없이) |
 | `@title 화면 상단 제목` | 장면 제목(상단 표시) |
+| `@duration 5` | 내레이션 없는 b-roll 장면 길이(초) |
 | `@voice ko-KR-InJoonNeural` | 이 장면만 다른 목소리 |
 | `@rate +10%` | 이 장면만 말하기 속도 |
+
+### 이미지·동영상 넣기 (원하는 지점에)
+
+장면(빈 줄로 구분)마다 배경을 따로 줄 수 있으므로, **넣고 싶은 지점에서 새 장면을
+시작**하면 됩니다. 동영상은 그 장면 동안 재생되고, 문장이 여러 개여도 끊기지 않고
+이어집니다.
+
+```
+여기까지는 그라데이션 배경으로 설명합니다.
+
+@bg video assets/ocean.mp4
+@title 바다
+이 부분에서는 바다 영상이 흐릅니다.
+영상은 멈추지 않고 계속 재생됩니다.
+
+@media diagram.png contain
+@title 구조도
+다이어그램은 잘리지 않게 통째로 보여줍니다.
+```
+
+> 다이어그램·스크린샷처럼 **잘리면 안 되는** 자료는 `contain`,
+> 풍경·배경처럼 **꽉 채우고 싶은** 영상은 `cover`(기본)를 쓰세요.
+
+### 키워드로 검색해서 넣기 (스톡 영상/이미지)
+
+`@search` 를 쓰면 [Pexels](https://www.pexels.com/api/) 무료 스톡에서 키워드로
+이미지·영상을 자동으로 받아 배경으로 씁니다. **무료 API 키**가 필요합니다.
+
+```bash
+# 1) https://www.pexels.com/api/ 에서 무료 키 발급
+# 2) 환경변수로 등록 (권장)
+export PEXELS_API_KEY="여기에_발급받은_키"
+# 또는 실행할 때: --pexels-key "키"
+```
+
+```
+@search video 우주 은하수
+오늘은 우주에 대해 이야기합니다.
+
+@search image 인공지능
+인공지능은 빠르게 발전하고 있습니다.
+```
+
+- `@search 키워드` (타입 생략) → 영상을 먼저 찾고 없으면 이미지.
+- 받은 파일은 `~/.cache/askript/stock/` 에 캐시되어 다음엔 다시 받지 않습니다.
 
 예시 (`examples/sample_script.txt`):
 
@@ -94,6 +144,8 @@ UTF-8 텍스트 파일입니다.
 | `--bg-color` | `#101418` | 단색 색상 |
 | `--gradient` | `#001027 #0a3d91` | 그라데이션 두 색 |
 | `--bg-image` | – | 이미지 배경 경로 |
+| `--fit` | `cover` | 이미지/영상 화면맞춤 기본값 (cover/contain) |
+| `--pexels-key` | – | Pexels API 키(`@search` 용, 환경변수로도 가능) |
 | `--tts` | `edge` | `edge`(실음성) / `silent`(무음 미리보기) |
 | `--voice` | `ko-KR-SunHiNeural` | Edge TTS 목소리 |
 | `--rate` | `+0%` | 말하기 속도 |
@@ -108,20 +160,25 @@ askript/
   cli.py        명령줄 인터페이스
   parser.py     대본 → 장면/문장 파싱
   tts.py        음성 합성 (edge / silent)
-  visuals.py    배경 생성 + 자막 프레임 합성 (Pillow)
-  render.py     전체 파이프라인 (프레임+음성 → ffmpeg → mp4)
+  visuals.py    배경 생성 + 자막 프레임/오버레이 합성 (Pillow)
+  media.py      스톡(Pexels) 검색·다운로드 + 배경 미디어 해석
+  render.py     전체 파이프라인 (정지화면/동영상 + 음성 → ffmpeg → mp4)
   ffmpeg.py     ffmpeg 실행/길이 측정 헬퍼
   fonts.py      한글 폰트 자동 해석/다운로드
 ```
 
 ## 한계 / 다음 단계
 
-현재는 **MVP** 입니다. 확장하기 좋은 부분:
+확장하기 좋은 부분:
 
-- 🎥 스톡 영상 배경(Pexels 등) / AI 생성 이미지 배경
 - 🎵 배경 음악(BGM) 믹싱
 - 🗣️ 단어 단위 자막 싱크(노래방 스타일)
+- 🖼️ AI 생성 이미지 배경(DALL·E 등)
+- 🎬 장면 전환 효과(페이드/슬라이드)
 - ⬆️ YouTube Data API 자동 업로드
+
+이미 지원: 단색/그라데이션 배경, 로컬 이미지·동영상 삽입, 키워드 스톡 검색(Pexels),
+한국어 음성(Edge TTS), 자막, 1080p/720p/480p/세로(쇼츠).
 
 ## 라이선스
 
